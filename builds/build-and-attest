@@ -26,7 +26,7 @@ git -C $GUIX_BUILD_DIR/bitcoin-detached-sigs checkout "v${VERSION}"
 pushd $HOME/bitcoin
 env SOURCES_PATH="$GUIX_BUILD_DIR/depends-sources-cache" BASE_CACHE="$GUIX_BUILD_DIR/depends-base-cache" SDK_PATH="$GUIX_BUILD_DIR/macos-sdks" $HOME/bitcoin/contrib/guix/guix-build
 env DETACHED_SIGS_REPO=$GUIX_BUILD_DIR/bitcoin-detached-sigs ./contrib/guix/guix-codesign
-env GUIX_SIGS_REPO=$GUIX_BUILD_DIR/guix.sigs ./contrib/guix/guix-attest
+env GUIX_SIGS_REPO=$GUIX_BUILD_DIR/guix.sigs SIGNER=$SIGNER ./contrib/guix/guix-attest
 popd
 
 pushd $GUIX_BUILD_DIR/guix.sigs
