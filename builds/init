@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# create a guix build directory for organizing all the necessary repos
+# and for keeping the cache directories outside the worktree
+
+GUIX_BUILD_DIR=${1:-$HOME/guix-builds}
+
+mkdir -p $GUIX_BUILD_DIR
+mkdir -p $GUIX_BUILD_DIR/depends-base-cache
+mkdir -p $GUIX_BUILD_DIR/depends-sources-cache
+
+# make sure to unzip the MacOS SDK into this directory before running the
+# build and attest script!
+mkdir -p $GUIX_BUILD_DIR/macos-sdks
+
+# clone the necessary repos for codesign verification and attesting to build outputs
+git -C $GUIX_BUILD_DIR clone git@github.com:bitcoin-core/bitcoin-detached-sigs.git
+git -C $GUIX_BUILD_DIR clone git@github.com:bitcoin-core/guix.sigs.git
+
+echo "Done! You can now run the ./build-and-attest <signer> <tag> script"

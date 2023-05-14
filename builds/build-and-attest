@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# NOTE: make sure to read through the guix build and release process docs before
+# blindly using a script. If you have read through those docs and understand
+# the process, this script is meant to help automate the repetitive steps
+
+SIGNER=$1
+VERSION=$2
+
+# you can use the ./init script to create a guix-builds directory
+GUIX_BUILD_DIR=${3:-$HOME/guix-builds}
+
+# checkout the tagged release we are planning to build and attest to
+pushd $HOME/bitcoin
+git fetch origin "v${VERSION}"
+git checkout "v${VERSION}"
+popd
+
+# refresh the guix.sigs repo
+# checkout the correct detached sigs repo
+git -C $GUIX_BUILD_DIR/guix.sigs pull upstream main 
+git -C $GUIX_BUILD_DIR/bitcoin-detached-sigs pull origin "v${VERSION}"
+git -C $GUIX_BUILD_DIR/bitcoin-detached-sigs checkout "v${VERSION}"
+
+# start building
+pushd $HOME/bitcoin
+env SOURCES_PATH="$GUIX_BUILD_DIR/depends-sources-cache" BASE_CACHE="$GUIX_BUILD_DIR/depends-base-cache" SDK_PATH="$GUIX_BUILD_DIR/macos-sdks" $HOME/bitcoin/contrib/guix/guix-build
+env DETACHED_SIGS_REPO=$GUIX_BUILD_DIR/bitcoin-detached-sigs ./contrib/guix/guix-codesign
+env GUIX_SIGS_REPO=$GUIX_BUILD_DIR/guix.sigs ./contrib/guix/guix-attest
+popd
+
+pushd $GUIX_BUILD_DIR/guix.sigs
+git checkout -b ${SIGNER}-${VERSION}-build-attestations
+git add "${VERSION}/${SIGNER}"/{all,noncodesigned}.SHA256SUMS{,.asc}
+git commit -m "Add attestations by ${SIGNER} for ${VERSION}"
+popd
