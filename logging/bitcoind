@@ -1,0 +1,23 @@
+/home/debug/.bitcoin/debug.log {
+    # FIXME: change this to whatever user and group you want to manage the node
+    su debug bitcoin
+    rotate 3 
+    olddir /home/debug/.bitcoin/log_old
+    daily
+    dateext
+    dateyesterday
+    missingok
+    notifempty
+    create 640 debug bitcoin
+    postrotate
+        # FIXME: set this to the directory you have bitcoind running in
+        kill -HUP `cat /home/debug/.bitcoin/bitcoind.pid`
+    endscript
+    compress
+    sharedscripts
+    lastaction
+        # FIXME: change this to where you want the logs shipped off to
+	# this command is specific to a hetzner storage box (e.g ssh -i <identity> -p23)
+        rsync -r -e 'ssh -i <identity> -p23' /home/debug/.bitcoin/log_old user@storage.server:/home/core-debug-logs
+    endscript
+}
